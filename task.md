@@ -18,24 +18,26 @@ The starter application may contain incomplete functionality. Focus on the requi
 ## Tasks
 
 ### Task 1 — Student Search and Status Filters (15 marks)
-
+Task 1 - varified
 Implement the student-list filtering behavior.
 
 Requirements:
-- Search students by name or email, without case sensitivity.
-- Filter students by placement status.
-- Allow search and status filters to work together.
-- Update the displayed results when either filter changes.
-- Show a clear empty state when no records match.
-- Ensure changing or clearing filters restores the appropriate results.
+- Search students by name or email, without case sensitivity. DONE
+- Filter students by placement status.  DONE
+- Allow search and status filters to work together.  DONE
+- Update the displayed results when either filter changes.  DONE
+- Show a clear empty state when no records match.  DONE
+- Ensure changing or clearing filters restores the appropriate results.  
+### DONE
 
 ### Task 2 — Form Validation and Editing (20 marks)
 
+task 2 - varified
 Complete the student create/edit form behavior.
 
 Requirements:
 - Require the student's name, email, course, and placement status.
-- Validate that the email address has a valid format.
+- Validate that the email address has a valid format. D
 - Display clear, field-specific validation messages.
 - Prevent submission when validation fails.
 - Support editing an existing student and saving the changes to that record instead of creating a duplicate.
@@ -43,7 +45,7 @@ Requirements:
 - Display a useful success or error message after submission.
 
 ### Task 3 — API Filtering and Pagination (25 marks)
-
+task3
 Implement query handling for `GET /api/students`.
 
 Requirements:
@@ -56,7 +58,7 @@ Requirements:
 - Keep the existing API response conventions and health endpoint working.
 
 ### Task 4 — Mongoose Validation and Data Integrity (20 marks)
-
+Task 4
 Improve server-side validation and error handling.
 
 Requirements:
@@ -68,7 +70,7 @@ Requirements:
 - Do not rely only on frontend validation to protect data integrity.
 
 ### Task 5 — API Integration and Asynchronous UI Behavior (20 marks)
-
+Task 5 
 Make the frontend behave reliably when communicating with the API.
 
 Requirements:
@@ -78,6 +80,8 @@ Requirements:
 - Prevent outdated responses from overwriting newer results when search or filters change quickly.
 - Avoid duplicate requests or submissions where appropriate.
 - Keep sample/preview data clearly separate from real API data; do not silently show sample data as if an API request succeeded.
+
+
 
 ## General Requirements
 
