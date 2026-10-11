@@ -10,25 +10,46 @@ function StudentForm({ student, onClose, onSubmit }) {
     course: student?.course ?? '',
     status: student?.status ?? 'Applied',
   })
-  const [error, setError] = useState('')
+  const [errors, setErrors] = useState({})
+  const [submitError, setSubmitError] = useState('')
+  const [submitting, setSubmitting] = useState(false)
 
   function updateField(event) {
     setValues((current) => ({ ...current, [event.target.name]: event.target.value }))
-    setError('')
+    setErrors((current) => ({ ...current, [event.target.name]: '' }))
+    setSubmitError('')
   }
 
   async function handleSubmit(event) {
     event.preventDefault()
-    const validationMessage = validateStudent(values)
-    if (validationMessage) {
-      setError(validationMessage)
+    if (submitting) return
+
+    const validationErrors = {
+      name: validateStudent(values, 'name'),
+      email: validateStudent(values, 'email'),
+      course: validateStudent(values, 'course'),
+      status: validateStudent(values, 'status'),
+    }
+
+    if (Object.values(validationErrors).some(Boolean)) {
+      setErrors(validationErrors)
       return
     }
 
+    setSubmitting(true)
+    setSubmitError('')
+
     try {
-      await onSubmit(values)
+      await onSubmit({
+        ...values,
+        name: values.name.trim(),
+        email: values.email.trim(),
+        course: values.course.trim(),
+      })
     } catch (submitError) {
-      setError(submitError.message)
+      setSubmitError(submitError.message || 'Unable to save the student. Please try again.')
+    } finally {
+      setSubmitting(false)
     }
   }
 
@@ -45,26 +66,30 @@ function StudentForm({ student, onClose, onSubmit }) {
         <form className="student-form" onSubmit={handleSubmit} noValidate>
           <label className="form-field">
             Student name
-            <input name="name" value={values.name} onChange={updateField} autoFocus />
+            <input name="name" value={values.name} onChange={updateField} aria-invalid={Boolean(errors.name)} aria-describedby={errors.name ? 'name-error' : undefined} required autoFocus />
+            {errors.name && <span className="field-error" id="name-error">{errors.name}</span>}
           </label>
           <label className="form-field">
             Email address
-            <input name="email" type="email" value={values.email} onChange={updateField} />
+            <input name="email" type="email" value={values.email} onChange={updateField} aria-invalid={Boolean(errors.email)} aria-describedby={errors.email ? 'email-error' : undefined} required />
+            {errors.email && <span className="field-error" id="email-error">{errors.email}</span>}
           </label>
           <label className="form-field">
             Course
-            <input name="course" value={values.course} onChange={updateField} placeholder="e.g. B.Tech CSE" />
+            <input name="course" value={values.course} onChange={updateField} aria-invalid={Boolean(errors.course)} aria-describedby={errors.course ? 'course-error' : undefined} placeholder="e.g. B.Tech CSE" required />
+            {errors.course && <span className="field-error" id="course-error">{errors.course}</span>}
           </label>
           <label className="form-field">
             Placement status
-            <select name="status" value={values.status} onChange={updateField}>
+            <select name="status" value={values.status} onChange={updateField} aria-invalid={Boolean(errors.status)} aria-describedby={errors.status ? 'status-error' : undefined} required>
               {statuses.map((status) => <option key={status}>{status}</option>)}
             </select>
+            {errors.status && <span className="field-error" id="status-error">{errors.status}</span>}
           </label>
-          {error && <p className="form-error" role="alert">{error}</p>}
+          {submitError && <p className="form-error" role="alert">{submitError}</p>}
           <div className="form-actions">
-            <button className="cancel-button" type="button" onClick={onClose}>Cancel</button>
-            <button className="primary-button" type="submit">{student ? 'Save changes' : 'Add student'}</button>
+            <button className="cancel-button" type="button" onClick={onClose} disabled={submitting}>Cancel</button>
+            <button className="primary-button" type="submit" disabled={submitting}>{submitting ? 'Saving...' : student ? 'Save changes' : 'Add student'}</button>
           </div>
         </form>
       </section>

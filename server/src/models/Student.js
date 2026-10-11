@@ -4,26 +4,26 @@ const studentSchema = new mongoose.Schema(
   {
     name: {
       type: String,
-      required: true,
+      required: [true, "Name is required"],
       trim: true,
     },
     email: {
       type: String,
-      required: true,
+      required: [true, "Email is required"],
       unique: true,
       lowercase: true,
       trim: true,
+      match: [/^[^\s@]+@[^\s@]+\.[^\s@]+$/, "Invalid email address"],
     },
     course: {
       type: String,
-      required: true,
+      required: [true, "Course is required"],
       trim: true,
     },
     status: {
       type: String,
-      enum: ["Applied", "Interview", "Offered", "Placed"],
-      default: "Applied",
-      required: true,
+      enum: { values: ["Applied", "Interview", "Offered", "Placed"], message: "Invalid placement status" },
+      required: [true, "Placement status is required"],
     },
   },
   { timestamps: true }

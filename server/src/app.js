@@ -23,4 +23,14 @@ app.get("/api/health", (_req, res) => {
   });
 });
 
+app.use((error, _req, res, _next) => {
+  const malformedJson = error instanceof SyntaxError && error.status === 400 && "body" in error;
+  return res.status(malformedJson ? 400 : 500).json({
+    success: false,
+    message: malformedJson ? "Invalid JSON body" : "Internal server error",
+  });
+});
+
+
+
 export default app;
