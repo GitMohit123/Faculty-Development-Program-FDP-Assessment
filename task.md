@@ -36,7 +36,7 @@ Complete the student create/edit form behavior.
 Requirements:
 - Require the student's name, email, course, and placement status.
 - Validate that the email address has a valid format.
-- Display clear, field-specific validation messages.
+- Display clear, field-specific validation messages.s
 - Prevent submission when validation fails.
 - Support editing an existing student and saving the changes to that record instead of creating a duplicate.
 - Prevent repeated submissions while a save request is in progress.

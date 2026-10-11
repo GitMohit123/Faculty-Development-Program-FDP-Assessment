@@ -1,6 +1,16 @@
 export function filterStudents(students, search, status) {
-  // Challenge 1: implement immutable name/email search and status filtering.
-  void search
-  void status
-  return students
+  const normalizedSearch = String(search ?? '').trim().toLowerCase()
+  const normalizedStatus = status ?? 'All statuses'
+
+  return students.filter((student) => {
+    const matchesSearch = !normalizedSearch ||
+      [student?.name, student?.email].some((value) =>
+        String(value ?? '').toLowerCase().includes(normalizedSearch),
+      )
+
+    const matchesStatus = normalizedStatus === 'All statuses' ||
+      student?.status === normalizedStatus
+
+    return matchesSearch && matchesStatus
+  })
 }

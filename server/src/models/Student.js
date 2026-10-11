@@ -13,6 +13,7 @@ const studentSchema = new mongoose.Schema(
       unique: true,
       lowercase: true,
       trim: true,
+      match: [/^[^\s@]+@[^\s@]+\.[^\s@]+$/, "Please provide a valid email address"],
     },
     course: {
       type: String,
@@ -22,7 +23,6 @@ const studentSchema = new mongoose.Schema(
     status: {
       type: String,
       enum: ["Applied", "Interview", "Offered", "Placed"],
-      default: "Applied",
       required: true,
     },
   },
