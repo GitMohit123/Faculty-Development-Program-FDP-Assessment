@@ -4,7 +4,12 @@ export function getStudentWriteError(error, mongoose) {
   }
 
   if (error instanceof mongoose.Error.ValidationError) {
-    return { status: 400, message: error.message };
+    const details = Object.values(error.errors).map((e) => e.message);
+    return { status: 400, message: details.join(", ") };
+  }
+
+  if (error instanceof mongoose.Error.CastError) {
+    return { status: 400, message: `Invalid value for ${error.path}` };
   }
 
   return { status: 500, message: "Unable to save student" };
