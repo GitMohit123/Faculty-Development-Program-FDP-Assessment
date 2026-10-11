@@ -24,3 +24,10 @@ export async function createStudent(student) {
     body: JSON.stringify(student),
   })
 }
+
+export async function updateStudent(id, student) {
+  return request(`/students/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify(student),
+  })
+}
