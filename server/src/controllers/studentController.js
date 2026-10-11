@@ -8,13 +8,31 @@ function sendWriteError(error, res) {
   return res.status(result.status).json({ success: false, message: result.message });
 }
 
+function escapeRegex(value) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
 export async function listStudents(req, res) {
   try {
     const { filter, page, pageSize } = buildStudentQuery(req.query);
+    const mongoFilter = {};
+
+    if (filter.status) {
+      mongoFilter.status = filter.status;
+    }
+
+    if (filter.search) {
+      mongoFilter.$or = [
+        { name: { $regex: escapeRegex(filter.search), $options: "i" } },
+        { email: { $regex: escapeRegex(filter.search), $options: "i" } },
+      ];
+    }
+
     const [students, total] = await Promise.all([
-      Student.find(filter).sort({ createdAt: -1 }).skip((page - 1) * pageSize).limit(pageSize),
-      Student.countDocuments(filter),
+      Student.find(mongoFilter).sort({ createdAt: -1 }).skip((page - 1) * pageSize).limit(pageSize),
+      Student.countDocuments(mongoFilter),
     ]);
+
     return res.status(200).json({
       success: true,
       data: students,
@@ -27,17 +45,55 @@ export async function listStudents(req, res) {
 
 export async function createStudent(req, res) {
   try {
-    const student = await Student.create(req.body);
-    return res.status(201).json({ success: true, data: student });
+    const { name, email, course, status } = req.body;
+
+    if (!name || !email || !course) {
+      return res.status(400).json({
+        success: false,
+        message: "Name, email, and course are required",
+      });
+    }
+
+    const normalizedEmail = String(email).trim().toLowerCase();
+    const validStatuses = ["Applied", "Interview", "Offered", "Placed"];
+
+    if (status && !validStatuses.includes(status)) {
+      return res.status(400).json({
+        success: false,
+        message: `Invalid status. Valid statuses are: ${validStatuses.join(", ")}`,
+      });
+    }
+
+    const payload = {
+      ...req.body,
+      name: String(name).trim(),
+      email: normalizedEmail,
+      course: String(course).trim(),
+    };
+
+    const student = new Student(payload);
+    await student.validate();
+
+    const createdStudent = await Student.create(payload);
+    return res.status(201).json({ success: true, data: createdStudent });
   } catch (error) {
     return sendWriteError(error, res);
   }
 }
-
 export async function updateStudent(req, res) {
   try {
-    // Challenge 4: validate the ObjectId and enable update validators before saving.
-    const student = await Student.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    const { id } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ success: false, message: "Invalid student id" });
+    }
+
+    const student = await Student.findByIdAndUpdate(req.params.id, req.body, {
+      new: true,
+      runValidators: true,
+      context: "query",
+    });
+
     if (!student) {
       return res.status(404).json({ success: false, message: "Student not found" });
     }

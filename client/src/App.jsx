@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import StudentForm from './components/StudentForm.jsx'
 import StudentTable from './components/StudentTable.jsx'
 import { sampleStudents } from './data/sampleStudents.js'
-import { createStudent, fetchStudents } from './services/studentService.js'
+import { createStudent, fetchStudents, updateStudent } from './services/studentService.js'
 import { filterStudents } from './utils/studentFilters.js'
 import './App.css'
 
@@ -58,16 +58,31 @@ function App() {
   }
 
   async function handleSave(values) {
+    const isEditing = Boolean(editingStudent)
+
     if (source === 'preview') {
-      setPreviewStudents((current) => [{ ...values, _id: crypto.randomUUID() }, ...current])
+      if (isEditing) {
+        setPreviewStudents((current) => current.map((student) =>
+          student._id === editingStudent._id ? { ...student, ...values } : student,
+        ))
+      } else {
+        setPreviewStudents((current) => [{ ...values, _id: crypto.randomUUID() }, ...current])
+      }
     } else {
-      const created = await createStudent(values)
-      setApiStudents((current) => [created, ...current])
+      if (isEditing) {
+        const updated = await updateStudent(editingStudent._id, values)
+        setApiStudents((current) => current.map((student) =>
+          student._id === editingStudent._id ? updated : student,
+        ))
+      } else {
+        const created = await createStudent(values)
+        setApiStudents((current) => [created, ...current])
+      }
     }
 
     setFormOpen(false)
     setEditingStudent(null)
-    setNotice(editingStudent ? 'Student updated.' : 'Student added.')
+    setNotice(isEditing ? 'Student updated.' : 'Student added.')
   }
 
   return (

@@ -22,6 +22,7 @@ test('student schema requires the core fields and timestamps', async () => {
     assert.ok(error.errors.name)
     assert.ok(error.errors.email)
     assert.ok(error.errors.course)
+    assert.ok(error.errors.status)
     return true
   })
   assert.equal(Student.schema.options.timestamps, true)
