@@ -4,6 +4,8 @@ import { validateStudent } from '../utils/studentValidation.js'
 const statuses = ['Applied', 'Interview', 'Offered', 'Placed']
 
 function StudentForm({ student, onClose, onSubmit }) {
+  console.log(student);
+  
   const [values, setValues] = useState({
     name: student?.name ?? '',
     email: student?.email ?? '',
@@ -11,13 +13,15 @@ function StudentForm({ student, onClose, onSubmit }) {
     status: student?.status ?? 'Applied',
   })
   const [error, setError] = useState('')
-
+  const [loading,setLoading] = useState(false)
+  
   function updateField(event) {
     setValues((current) => ({ ...current, [event.target.name]: event.target.value }))
     setError('')
   }
 
   async function handleSubmit(event) {
+    setLoading(true)
     event.preventDefault()
     const validationMessage = validateStudent(values)
     if (validationMessage) {
@@ -29,6 +33,9 @@ function StudentForm({ student, onClose, onSubmit }) {
       await onSubmit(values)
     } catch (submitError) {
       setError(submitError.message)
+    }
+    finally{
+      setLoading(false)
     }
   }
 
@@ -64,7 +71,7 @@ function StudentForm({ student, onClose, onSubmit }) {
           {error && <p className="form-error" role="alert">{error}</p>}
           <div className="form-actions">
             <button className="cancel-button" type="button" onClick={onClose}>Cancel</button>
-            <button className="primary-button" type="submit">{student ? 'Save changes' : 'Add student'}</button>
+            <button className="primary-button" type="submit" disabled={loading}>{student ? 'Save changes' : 'Add student'}</button>
           </div>
         </form>
       </section>
