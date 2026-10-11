@@ -120,3 +120,11 @@ h2 span { margin-left: 6px; color: #91a099; font: 500 12px var(--sans); }
   .filter-field { flex: 1; }
   .filter-field select { width: 100%; }
 }
+
+.field-error { color: #a34538; font-size: 11px; font-weight: 500; }
+.form-field [aria-invalid="true"] { border-color: #d18b7f; }
+.form-actions button:disabled { opacity: 0.6; cursor: not-allowed; }
+
+.preview-banner { margin: 0; padding: 10px 24px; border-bottom: 1px solid #f0e2bd; color: #7a5a12; background: #fdf7e7; font-size: 12px; }
+.pagination { display: flex; justify-content: center; align-items: center; gap: 16px; padding: 12px 24px; border-top: 1px solid #e7eee9; color: #66756f; font-size: 12px; }
+.pagination button:disabled { opacity: 0.4; cursor: not-allowed; }
