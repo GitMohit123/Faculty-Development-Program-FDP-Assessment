@@ -1,8 +1,26 @@
+
+const validStatuses = ['Applied', 'Interview', 'Offered', 'Placed']
+
 export function validateStudent(student) {
-  if (!student.name.trim() || !student.email.trim() || !student.course.trim()) {
-    return 'Name, email, and course are required.'
+  const errors = {}
+
+  if (!student.name.trim()) {
+    errors.name = 'Student name is required.'
   }
 
-  // Challenge 2: add email-format and duplicate-email validation.
-  return ''
+  if (!student.email.trim()) {
+    errors.email = 'Email address is required.'
+  } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(student.email.trim())) {
+    errors.email = 'Please enter a valid email address.'
+  }
+
+  if (!student.course.trim()) {
+    errors.course = 'Course is required.'
+  }
+
+  if (!validStatuses.includes(student.status)) {
+    errors.status = 'Please select a placement status.'
+  }
+
+  return errors
 }

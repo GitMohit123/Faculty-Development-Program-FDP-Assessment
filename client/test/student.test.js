@@ -1,3 +1,4 @@
+
 import test from 'node:test'
 import assert from 'node:assert/strict'
 import { sampleStudents } from '../src/data/sampleStudents.js'
@@ -13,8 +14,23 @@ test('sample preview contains the five fictional placement records', () => {
 })
 
 test('form validation rejects missing required fields', () => {
-  assert.match(validateStudent({ name: '', email: 'a@example.edu', course: 'BCA' }), /required/i)
-  assert.equal(validateStudent({ name: 'Aditi Sharma', email: 'a@example.edu', course: 'BCA' }), '')
+  const errors = validateStudent({
+    name: '',
+    email: 'a@example.edu',
+    course: 'BCA',
+    status: 'Applied',
+  })
+
+  assert.match(errors.name, /required/i)
+
+  const validErrors = validateStudent({
+    name: 'Aditi Sharma',
+    email: 'a@example.edu',
+    course: 'BCA',
+    status: 'Applied',
+  })
+
+  assert.deepEqual(validErrors, {})
 })
 
 test('challenge 1: search and status filtering work together', { todo: 'Candidate implementation' }, () => {
@@ -22,15 +38,26 @@ test('challenge 1: search and status filtering work together', { todo: 'Candidat
 })
 
 test('challenge 2: malformed and duplicate email values are rejected', { todo: 'Candidate implementation' }, () => {
-  assert.match(validateStudent({ name: 'Aditi', email: 'not-an-email', course: 'BCA' }), /email/i)
+  const errors = validateStudent({
+    name: 'Aditi',
+    email: 'not-an-email',
+    course: 'BCA',
+    status: 'Applied',
+  })
+
+  assert.match(errors.email, /email/i)
 })
 
 test('student service reports failed responses instead of returning success data', async () => {
   const originalFetch = globalThis.fetch
-  globalThis.fetch = async () => new Response(JSON.stringify({ success: false, message: 'Database unavailable' }), {
-    status: 503,
-    headers: { 'Content-Type': 'application/json' },
-  })
+
+  globalThis.fetch = async () => new Response(
+    JSON.stringify({ success: false, message: 'Database unavailable' }),
+    {
+      status: 503,
+      headers: { 'Content-Type': 'application/json' },
+    },
+  )
 
   try {
     await assert.rejects(fetchStudents(), /Database unavailable/)

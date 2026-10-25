@@ -36,13 +36,36 @@ export async function createStudent(req, res) {
 
 export async function updateStudent(req, res) {
   try {
-    // Challenge 4: validate the ObjectId and enable update validators before saving.
-    const student = await Student.findByIdAndUpdate(req.params.id, req.body, { new: true });
-    if (!student) {
-      return res.status(404).json({ success: false, message: "Student not found" });
+    const { id } = req.params;
+
+    // Validate MongoDB ObjectId
+    if (!mongoose.isValidObjectId(id)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid student ID",
+      });
     }
 
-    return res.status(200).json({ success: true, data: student });
+    const student = await Student.findByIdAndUpdate(
+      id,
+      req.body,
+      {
+        new: true,
+        runValidators: true,
+      }
+    );
+
+    if (!student) {
+      return res.status(404).json({
+        success: false,
+        message: "Student not found",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      data: student,
+    });
   } catch (error) {
     return sendWriteError(error, res);
   }

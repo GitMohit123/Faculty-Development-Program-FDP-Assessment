@@ -14,13 +14,40 @@ async function request(path, options) {
   return payload.data
 }
 
-export async function fetchStudents() {
-  return request('/students')
+export async function fetchStudents({
+  search = '',
+  status = '',
+  page = 1,
+  limit = 100,
+  signal,
+} = {}) {
+  const params = new URLSearchParams({
+    page: String(page),
+    limit: String(limit),
+  })
+
+  if (search.trim()) {
+    params.set('search', search.trim())
+  }
+
+  if (status) {
+    params.set('status', status)
+  }
+
+  return request(`/students?${params.toString()}`, { signal })
 }
 
 export async function createStudent(student) {
   return request('/students', {
     method: 'POST',
+    body: JSON.stringify(student),
+  })
+}
+
+
+export async function updateStudent(id, student) {
+  return request(`/students/${encodeURIComponent(id)}`, {
+    method: 'PUT',
     body: JSON.stringify(student),
   })
 }

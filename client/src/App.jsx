@@ -1,12 +1,18 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import StudentForm from './components/StudentForm.jsx'
 import StudentTable from './components/StudentTable.jsx'
 import { sampleStudents } from './data/sampleStudents.js'
-import { createStudent, fetchStudents } from './services/studentService.js'
 import { filterStudents } from './utils/studentFilters.js'
 import './App.css'
+import {
+  createStudent,
+  updateStudent,
+  fetchStudents,
+} from './services/studentService.js'
 
 function App() {
+
+  const saveInProgress = useRef(false)
   const [apiStudents, setApiStudents] = useState([])
   const [previewStudents, setPreviewStudents] = useState(sampleStudents)
   const [query, setQuery] = useState('')
@@ -20,14 +26,42 @@ function App() {
   const [editingStudent, setEditingStudent] = useState(null)
   const students = source === 'preview' ? previewStudents : apiStudents
 
-  useEffect(() => {
-    if (source !== 'api') return
+useEffect(() => {
+  if (source !== 'api') return
 
-    fetchStudents()
-      .then((records) => setApiStudents(records))
-      .catch((requestError) => setError(requestError.message))
-      .finally(() => setLoading(false))
-  }, [source, refreshKey])
+  let active = true
+  const controller = new AbortController()
+
+  fetchStudents({
+    search: query,
+    status: statusFilter === 'All statuses' ? '' : statusFilter,
+    page: 1,
+    limit: 100,
+    signal: controller.signal,
+  })
+    .then((records) => {
+      if (active) {
+        setApiStudents(records)
+        setError('')
+      }
+    })
+    .catch((requestError) => {
+      if (active && requestError.name !== 'AbortError') {
+        setError(requestError.message || 'Unable to load students.')
+      }
+    })
+    .finally(() => {
+      if (active) {
+        setLoading(false)
+      }
+    })
+
+  return () => {
+    active = false
+    controller.abort()
+  }
+}, [source, refreshKey, query, statusFilter])
+
 
   const visibleStudents = filterStudents(students, query, statusFilter)
   const placedCount = students.filter((student) => student.status === 'Placed').length
@@ -46,10 +80,13 @@ function App() {
   }
 
   function selectSource(nextSource) {
-    setSource(nextSource)
-    setError('')
-    setLoading(nextSource === 'api')
-  }
+  if (nextSource === source) return
+
+  setSource(nextSource)
+  setError('')
+  setNotice('')
+  setLoading(nextSource === 'api')
+}
 
   function retryLoading() {
     setError('')
@@ -57,18 +94,55 @@ function App() {
     setRefreshKey((key) => key + 1)
   }
 
-  async function handleSave(values) {
+
+async function handleSave(values) {
+  if (saveInProgress.current) return
+
+  saveInProgress.current = true
+
+  try {
     if (source === 'preview') {
-      setPreviewStudents((current) => [{ ...values, _id: crypto.randomUUID() }, ...current])
+      if (editingStudent) {
+        setPreviewStudents((current) =>
+          current.map((record) =>
+            record._id === editingStudent._id
+              ? { ...record, ...values }
+              : record
+          )
+        )
+      } else {
+        setPreviewStudents((current) => [
+          { ...values, _id: crypto.randomUUID() },
+          ...current,
+        ])
+      }
+    } else if (editingStudent) {
+      const updated = await updateStudent(editingStudent._id, values)
+
+      setApiStudents((current) =>
+        current.map((record) =>
+          record._id === editingStudent._id ? updated : record
+        )
+      )
+
+      setRefreshKey((key) => key + 1)
     } else {
-      const created = await createStudent(values)
-      setApiStudents((current) => [created, ...current])
+      await createStudent(values)
+      setRefreshKey((key) => key + 1)
     }
 
     setFormOpen(false)
     setEditingStudent(null)
-    setNotice(editingStudent ? 'Student updated.' : 'Student added.')
+    setNotice(
+      editingStudent
+        ? 'Student updated successfully.'
+        : 'Student added successfully.'
+    )
+  } finally {
+    saveInProgress.current = false
   }
+}
+
 
   return (
     <main className="app-shell">
